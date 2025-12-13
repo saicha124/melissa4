@@ -69,26 +69,42 @@ export function generateKeys(p: number, q: number) {
 }
 
 // Encrypt a string using Public Key (e, n)
-// Converts chars to ASCII codes (or A=1 mapping) -> encrypts -> returns space-separated numbers
+// Supports:
+// - Text: Converts chars to 1-26 (A=1) -> encrypts
+// - Numbers: Encrypts raw numbers if input matches "12 34" format
 export function rsaEncrypt(text: string, e: number, n: number): string {
+  const trimmed = text.trim();
+  
+  // If input is space-separated numbers (e.g., "12 5 100")
+  if (/^(\d+\s*)+$/.test(trimmed)) {
+    return trimmed
+      .split(/\s+/)
+      .map(numStr => {
+        const m = parseInt(numStr, 10);
+        if (isNaN(m)) return "";
+        // Encrypt number directly
+        return modPow(m, e, n).toString();
+      })
+      .join(" ");
+  }
+
+  // Otherwise treat as text
   return text
     .toUpperCase()
     .split("")
     .map(char => {
-      // Map A-Z to 1-26 (0 is problematic in simple RSA if padding isn't used correctly, but 1-26 is safe if n > 26)
-      // Actually standard ASCII is fine if n > 127.
-      // Let's stick to A=1, B=2... Z=26 for pedagogical consistency with Caesar
       const code = char.charCodeAt(0);
       let m = 0;
       if (code >= 65 && code <= 90) {
          m = code - 64; // A=1
       } else {
-         m = 0; // Space or other
+         // Treat digits 0-9 in text mode? Or just ignore?
+         // Let's keep strict A-Z for text mode to avoid confusion
+         m = 0; 
       }
       
-      if (m === 0) return "0"; // Treat 0 as space/special
+      if (m === 0) return "0"; 
       
-      // c = m^e mod n
       const c = modPow(m, e, n);
       return c.toString();
     })

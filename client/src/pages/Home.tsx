@@ -33,16 +33,17 @@ const translations = {
     tab_caesar: "César",
     tab_vigenere: "Vigenère",
     tab_rsa: "RSA (Asymétrique)",
-    input_label: "Ton Message",
+    input_label: "Ton Message (Texte ou Nombres)",
     btn_reset: "Effacer",
-    placeholder: "Écris ton message secret ici...",
+    placeholder_caesar: "Écris ton message secret ici...",
+    placeholder_rsa: "Ex: 'A' (pour 1) ou '12' (nombre direct)",
     shift_label: "Décalage (Clé)",
     key_label: "Mot-Clé Secret",
     key_desc: "Le mot-clé est répété pour correspondre à la longueur du message.",
     rsa_primes_label: "Nombres Premiers (p, q)",
     rsa_public_key: "Clé Publique (e, n)",
     rsa_private_key: "Clé Privée (d, n)",
-    rsa_warn: "Pour simplifier, A=1, B=2...",
+    rsa_warn: "A=1, B=2... ou entrez des nombres directement.",
     btn_encrypt: "Chiffrer",
     btn_decrypt: "Déchiffrer",
     result_label: "Résultat",
@@ -78,6 +79,7 @@ const translations = {
     preview_empty: "Commence à écrire pour voir la transformation...",
     dialog_title: "La Magie des Maths",
     dialog_desc: "Voici comment nous transformons la lettre",
+    dialog_desc_rsa: "Voici comment nous transformons la valeur",
     dialog_index: "Index",
     dialog_shift: "Décalage",
     dialog_key: "Clé",
@@ -86,7 +88,7 @@ const translations = {
     dialog_step2: "2. On ajoute le décalage :",
     dialog_step3: "3. Modulo 26 (reste) :",
     dialog_step4: "4. Nouvelle lettre :",
-    dialog_rsa_step1: "1. Conversion en nombre :",
+    dialog_rsa_step1: "1. Valeur (M) :",
     dialog_rsa_step2: "2. Puissance (e) :",
     dialog_rsa_step3: "3. Modulo n :",
     dialog_rsa_step4: "4. Résultat chiffré :",
@@ -99,16 +101,17 @@ const translations = {
     tab_caesar: "Caesar",
     tab_vigenere: "Vigenère",
     tab_rsa: "RSA (Asymmetric)",
-    input_label: "Your Message",
+    input_label: "Your Message (Text or Numbers)",
     btn_reset: "Clear",
-    placeholder: "Type your secret message here...",
+    placeholder_caesar: "Type your secret message here...",
+    placeholder_rsa: "Ex: 'A' (for 1) or '12' (direct number)",
     shift_label: "Shift (Key)",
     key_label: "Secret Keyword",
     key_desc: "The keyword is repeated to match the message length.",
     rsa_primes_label: "Prime Numbers (p, q)",
     rsa_public_key: "Public Key (e, n)",
     rsa_private_key: "Private Key (d, n)",
-    rsa_warn: "Simplified: A=1, B=2...",
+    rsa_warn: "A=1, B=2... or enter numbers directly.",
     btn_encrypt: "Encrypt",
     btn_decrypt: "Decrypt",
     result_label: "Result",
@@ -144,6 +147,7 @@ const translations = {
     preview_empty: "Start typing to see the transformation...",
     dialog_title: "The Magic of Math",
     dialog_desc: "Here is how we transform the letter",
+    dialog_desc_rsa: "Here is how we transform the value",
     dialog_index: "Index",
     dialog_shift: "Shift",
     dialog_key: "Key",
@@ -152,7 +156,7 @@ const translations = {
     dialog_step2: "2. Add the shift:",
     dialog_step3: "3. Modulo 26 (remainder):",
     dialog_step4: "4. New Letter:",
-    dialog_rsa_step1: "1. Convert to number:",
+    dialog_rsa_step1: "1. Value (M):",
     dialog_rsa_step2: "2. Power (e):",
     dialog_rsa_step3: "3. Modulo n:",
     dialog_rsa_step4: "4. Encrypted Result:",
@@ -165,16 +169,17 @@ const translations = {
     tab_caesar: "قيصر",
     tab_vigenere: "فيجينير",
     tab_rsa: "RSA (غير متماثل)",
-    input_label: "رسالتك",
+    input_label: "رسالتك (نص أو أرقام)",
     btn_reset: "مسح",
-    placeholder: "اكتب رسالتك السرية هنا...",
+    placeholder_caesar: "اكتب رسالتك السرية هنا...",
+    placeholder_rsa: "مثال: 'A' (لـ 1) أو '12' (رقم مباشر)",
     shift_label: "الإزاحة (المفتاح)",
     key_label: "الكلمة المفتاحية السرية",
     key_desc: "يتم تكرار الكلمة المفتاحية لتتناسب مع طول الرسالة.",
     rsa_primes_label: "الأعداد الأولية (p, q)",
     rsa_public_key: "المفتاح العام (e, n)",
     rsa_private_key: "المفتاح الخاص (d, n)",
-    rsa_warn: "مبسط: A=1, B=2...",
+    rsa_warn: "A=1, B=2... أو أدخل أرقامًا مباشرة.",
     btn_encrypt: "تشفير",
     btn_decrypt: "فك التشفير",
     result_label: "النتيجة",
@@ -210,6 +215,7 @@ const translations = {
     preview_empty: "ابدأ بالكتابة لرؤية التحويل...",
     dialog_title: "سحر الرياضيات",
     dialog_desc: "إليك كيفية تحويل الحرف",
+    dialog_desc_rsa: "إليك كيفية تحويل القيمة",
     dialog_index: "فهرس",
     dialog_shift: "إزاحة",
     dialog_key: "مفتاح",
@@ -218,7 +224,7 @@ const translations = {
     dialog_step2: "2. نضيف الإزاحة:",
     dialog_step3: "3. باقي القسمة (Modulo 26):",
     dialog_step4: "4. الحرف الجديد:",
-    dialog_rsa_step1: "1. التحويل إلى رقم:",
+    dialog_rsa_step1: "1. القيمة (M):",
     dialog_rsa_step2: "2. الأس (e):",
     dialog_rsa_step3: "3. باقي القسمة n:",
     dialog_rsa_step4: "4. النتيجة المشفرة:",
@@ -434,7 +440,7 @@ export default function Home() {
                 <Textarea 
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder={t.placeholder}
+                  placeholder={activeCipher === "rsa" ? t.placeholder_rsa : t.placeholder_caesar}
                   className="min-h-[120px] text-lg bg-white border-slate-200 focus:border-indigo-400 focus:ring-indigo-400/20 rounded-xl resize-none shadow-inner"
                   data-testid="input-message"
                 />
@@ -632,7 +638,7 @@ export default function Home() {
                         {t.dialog_title}
                       </DialogTitle>
                       <DialogDescription>
-                         {activeCipher === "rsa" ? t.dialog_desc : 
+                         {activeCipher === "rsa" ? t.dialog_desc_rsa : 
                            <>{t.dialog_desc} <span className="font-bold text-indigo-600">"{explanation.firstChar}"</span>.</>
                          }
                       </DialogDescription>
