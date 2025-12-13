@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Unlock, RefreshCw, ArrowRight, Info, Sparkles, Shield, Key, BarChart3, ChevronDown, Check, Calculator, Globe } from "lucide-react";
+import { Lock, Unlock, RefreshCw, ArrowRight, Info, Sparkles, Shield, Key, BarChart3, ChevronDown, Check, Calculator, Globe, Binary } from "lucide-react";
 import { caesarCipher, vigenereCipher, ALPHABET } from "@/lib/caesar";
+import { generateKeys, rsaEncrypt, rsaDecrypt, isPrime } from "@/lib/rsa";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -27,16 +28,21 @@ import {
 const translations = {
   fr: {
     header_tag: "Cryptographie & Mathématiques",
-    header_title: "César vs Vigenère",
-    header_desc: "Explore deux méthodes historiques de chiffrement. Compare leur fonctionnement, leur sécurité et découvre les mathématiques qui se cachent derrière.",
-    tab_caesar: "Chiffrement de César",
-    tab_vigenere: "Chiffrement de Vigenère",
+    header_title: "César vs Vigenère vs RSA",
+    header_desc: "Explore trois méthodes de chiffrement : du simple décalage à la cryptographie asymétrique moderne.",
+    tab_caesar: "César",
+    tab_vigenere: "Vigenère",
+    tab_rsa: "RSA (Asymétrique)",
     input_label: "Ton Message",
     btn_reset: "Effacer",
     placeholder: "Écris ton message secret ici...",
     shift_label: "Décalage (Clé)",
     key_label: "Mot-Clé Secret",
     key_desc: "Le mot-clé est répété pour correspondre à la longueur du message.",
+    rsa_primes_label: "Nombres Premiers (p, q)",
+    rsa_public_key: "Clé Publique (e, n)",
+    rsa_private_key: "Clé Privée (d, n)",
+    rsa_warn: "Pour simplifier, A=1, B=2...",
     btn_encrypt: "Chiffrer",
     btn_decrypt: "Déchiffrer",
     result_label: "Résultat",
@@ -46,25 +52,30 @@ const translations = {
     math_title: "Logique Mathématique",
     math_desc_caesar: "Le chiffre de César décale chaque lettre d'un nombre fixe.",
     math_desc_vigenere: "Vigenère utilise une série de chiffres de César différents basés sur un mot-clé.",
+    math_desc_rsa: "RSA utilise deux clés différentes (publique pour chiffrer, privée pour déchiffrer) basées sur des grands nombres premiers.",
     math_formula_label: "Formule de chiffrement",
-    legend_l: "L = Lettre Originale (0-25)",
-    legend_mod: "mod 26 = Reste division par 26",
+    legend_l: "L = Lettre Originale",
+    legend_mod: "mod = Reste division",
     comp_title: "Comparaison Rapide",
     comp_col_criteria: "Critère",
     comp_row_simplicity: "Simplicité",
     comp_val_simple: "Très Simple",
     comp_val_medium: "Moyen",
+    comp_val_complex: "Complexe",
     comp_row_security: "Sécurité",
     comp_val_weak: "Faible",
     comp_val_better: "Meilleure",
+    comp_val_strong: "Très Forte",
     comp_row_key: "Type de Clé",
-    comp_val_number: "Un nombre (0-25)",
-    comp_val_word: "Un mot (Lettres)",
-    comp_row_weakness: "Faiblesse",
-    comp_val_freq: "Analyse fréquentielle facile",
-    comp_val_repeat: "Mot-clé court = répétition",
+    comp_val_number: "Un nombre",
+    comp_val_word: "Un mot",
+    comp_val_pair: "Paire de clés",
+    comp_row_weakness: "Usage",
+    comp_val_freq: "Historique",
+    comp_val_repeat: "Historique",
+    comp_val_internet: "Sécurise Internet",
     preview_title: "Aperçu de la transformation",
-    preview_empty: "Commence à écrire pour voir la transformation lettre par lettre...",
+    preview_empty: "Commence à écrire pour voir la transformation...",
     dialog_title: "La Magie des Maths",
     dialog_desc: "Voici comment nous transformons la lettre",
     dialog_index: "Index",
@@ -75,20 +86,29 @@ const translations = {
     dialog_step2: "2. On ajoute le décalage :",
     dialog_step3: "3. Modulo 26 (reste) :",
     dialog_step4: "4. Nouvelle lettre :",
+    dialog_rsa_step1: "1. Conversion en nombre :",
+    dialog_rsa_step2: "2. Puissance (e) :",
+    dialog_rsa_step3: "3. Modulo n :",
+    dialog_rsa_step4: "4. Résultat chiffré :",
     dialog_footer: "* Le modulo 26 permet de revenir au début de l'alphabet (Z → A)"
   },
   en: {
     header_tag: "Cryptography & Mathematics",
-    header_title: "Caesar vs Vigenère",
-    header_desc: "Explore two historical encryption methods. Compare how they work, their security, and discover the mathematics behind them.",
-    tab_caesar: "Caesar Cipher",
-    tab_vigenere: "Vigenère Cipher",
+    header_title: "Caesar vs Vigenère vs RSA",
+    header_desc: "Explore three encryption methods: from simple shifts to modern asymmetric cryptography.",
+    tab_caesar: "Caesar",
+    tab_vigenere: "Vigenère",
+    tab_rsa: "RSA (Asymmetric)",
     input_label: "Your Message",
     btn_reset: "Clear",
     placeholder: "Type your secret message here...",
     shift_label: "Shift (Key)",
     key_label: "Secret Keyword",
     key_desc: "The keyword is repeated to match the message length.",
+    rsa_primes_label: "Prime Numbers (p, q)",
+    rsa_public_key: "Public Key (e, n)",
+    rsa_private_key: "Private Key (d, n)",
+    rsa_warn: "Simplified: A=1, B=2...",
     btn_encrypt: "Encrypt",
     btn_decrypt: "Decrypt",
     result_label: "Result",
@@ -98,25 +118,30 @@ const translations = {
     math_title: "Mathematical Logic",
     math_desc_caesar: "The Caesar cipher shifts every letter by a fixed number.",
     math_desc_vigenere: "Vigenère uses a series of different Caesar ciphers based on a keyword.",
+    math_desc_rsa: "RSA uses two different keys (public to encrypt, private to decrypt) based on large prime numbers.",
     math_formula_label: "Encryption Formula",
-    legend_l: "L = Original Letter (0-25)",
-    legend_mod: "mod 26 = Remainder of division by 26",
+    legend_l: "L = Original Letter",
+    legend_mod: "mod = Remainder",
     comp_title: "Quick Comparison",
     comp_col_criteria: "Criteria",
     comp_row_simplicity: "Simplicity",
     comp_val_simple: "Very Simple",
     comp_val_medium: "Medium",
+    comp_val_complex: "Complex",
     comp_row_security: "Security",
     comp_val_weak: "Weak",
     comp_val_better: "Better",
+    comp_val_strong: "Very Strong",
     comp_row_key: "Key Type",
-    comp_val_number: "A Number (0-25)",
-    comp_val_word: "A Word (Letters)",
-    comp_row_weakness: "Weakness",
-    comp_val_freq: "Easy frequency analysis",
-    comp_val_repeat: "Short keyword = repetition",
+    comp_val_number: "A Number",
+    comp_val_word: "A Word",
+    comp_val_pair: "Key Pair",
+    comp_row_weakness: "Usage",
+    comp_val_freq: "Historical",
+    comp_val_repeat: "Historical",
+    comp_val_internet: "Secures Internet",
     preview_title: "Transformation Preview",
-    preview_empty: "Start typing to see the letter-by-letter transformation...",
+    preview_empty: "Start typing to see the transformation...",
     dialog_title: "The Magic of Math",
     dialog_desc: "Here is how we transform the letter",
     dialog_index: "Index",
@@ -127,20 +152,29 @@ const translations = {
     dialog_step2: "2. Add the shift:",
     dialog_step3: "3. Modulo 26 (remainder):",
     dialog_step4: "4. New Letter:",
+    dialog_rsa_step1: "1. Convert to number:",
+    dialog_rsa_step2: "2. Power (e):",
+    dialog_rsa_step3: "3. Modulo n:",
+    dialog_rsa_step4: "4. Encrypted Result:",
     dialog_footer: "* Modulo 26 allows wrapping back to the start of the alphabet (Z → A)"
   },
   ar: {
     header_tag: "التشفير والرياضيات",
-    header_title: "قيصر ضد فيجينير",
-    header_desc: "استكشف طريقتين تاريخيتين للتشفير. قارن بين طريقة عملهما وأمانهما واكتشف الرياضيات الكامنة وراءهما.",
-    tab_caesar: "تشفير قيصر",
-    tab_vigenere: "تشفير فيجينير",
+    header_title: "قيصر ضد فيجينير ضد RSA",
+    header_desc: "استكشف ثلاث طرق للتشفير: من الإزاحة البسيطة إلى التشفير غير المتماثل الحديث.",
+    tab_caesar: "قيصر",
+    tab_vigenere: "فيجينير",
+    tab_rsa: "RSA (غير متماثل)",
     input_label: "رسالتك",
     btn_reset: "مسح",
     placeholder: "اكتب رسالتك السرية هنا...",
     shift_label: "الإزاحة (المفتاح)",
     key_label: "الكلمة المفتاحية السرية",
     key_desc: "يتم تكرار الكلمة المفتاحية لتتناسب مع طول الرسالة.",
+    rsa_primes_label: "الأعداد الأولية (p, q)",
+    rsa_public_key: "المفتاح العام (e, n)",
+    rsa_private_key: "المفتاح الخاص (d, n)",
+    rsa_warn: "مبسط: A=1, B=2...",
     btn_encrypt: "تشفير",
     btn_decrypt: "فك التشفير",
     result_label: "النتيجة",
@@ -150,25 +184,30 @@ const translations = {
     math_title: "المنطق الرياضي",
     math_desc_caesar: "يقوم تشفير قيصر بإزاحة كل حرف بمقدار رقم ثابت.",
     math_desc_vigenere: "يستخدم فيجينير سلسلة من شفرات قيصر المختلفة بناءً على كلمة مفتاحية.",
+    math_desc_rsa: "يستخدم RSA مفتاحين مختلفين (عام للتشفير، وخاص لفك التشفير) بناءً على أعداد أولية كبيرة.",
     math_formula_label: "صيغة التشفير",
-    legend_l: "L = الحرف الأصلي (0-25)",
-    legend_mod: "mod 26 = باقي القسمة على 26",
+    legend_l: "L = الحرف الأصلي",
+    legend_mod: "mod = الباقي",
     comp_title: "مقارنة سريعة",
     comp_col_criteria: "المعيار",
     comp_row_simplicity: "البساطة",
     comp_val_simple: "بسيط جداً",
     comp_val_medium: "متوسط",
+    comp_val_complex: "معقد",
     comp_row_security: "الأمان",
     comp_val_weak: "ضعيف",
     comp_val_better: "أفضل",
+    comp_val_strong: "قوي جداً",
     comp_row_key: "نوع المفتاح",
-    comp_val_number: "رقم (0-25)",
-    comp_val_word: "كلمة (حروف)",
-    comp_row_weakness: "نقطة الضعف",
-    comp_val_freq: "سهولة تحليل التكرار",
-    comp_val_repeat: "كلمة قصيرة = تكرار",
+    comp_val_number: "رقم",
+    comp_val_word: "كلمة",
+    comp_val_pair: "زوج مفاتيح",
+    comp_row_weakness: "الاستخدام",
+    comp_val_freq: "تاريخي",
+    comp_val_repeat: "تاريخي",
+    comp_val_internet: "يؤمن الإنترنت",
     preview_title: "معاينة التحويل",
-    preview_empty: "ابدأ بالكتابة لرؤية التحويل حرفًا بحرف...",
+    preview_empty: "ابدأ بالكتابة لرؤية التحويل...",
     dialog_title: "سحر الرياضيات",
     dialog_desc: "إليك كيفية تحويل الحرف",
     dialog_index: "فهرس",
@@ -179,6 +218,10 @@ const translations = {
     dialog_step2: "2. نضيف الإزاحة:",
     dialog_step3: "3. باقي القسمة (Modulo 26):",
     dialog_step4: "4. الحرف الجديد:",
+    dialog_rsa_step1: "1. التحويل إلى رقم:",
+    dialog_rsa_step2: "2. الأس (e):",
+    dialog_rsa_step3: "3. باقي القسمة n:",
+    dialog_rsa_step4: "4. النتيجة المشفرة:",
     dialog_footer: "* يسمح Modulo 26 بالعودة إلى بداية الأبجدية (Z → A)"
   }
 };
@@ -188,7 +231,7 @@ export default function Home() {
   const t = translations[lang];
   const isRTL = lang === "ar";
   
-  const [activeCipher, setActiveCipher] = useState<"caesar" | "vigenere">("caesar");
+  const [activeCipher, setActiveCipher] = useState<"caesar" | "vigenere" | "rsa">("caesar");
   
   const [message, setMessage] = useState("");
   const [result, setResult] = useState("");
@@ -200,6 +243,11 @@ export default function Home() {
   // Vigenere State
   const [vigenereKey, setVigenereKey] = useState("MATHS");
 
+  // RSA State
+  const [p, setP] = useState(11);
+  const [q, setQ] = useState(17);
+  const [keys, setKeys] = useState({ publicKey: { e: 3, n: 187 }, privateKey: { d: 107, n: 187 }, phi: 160 });
+
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
@@ -207,16 +255,30 @@ export default function Home() {
     document.documentElement.lang = lang;
   }, [isRTL, lang]);
 
+  // Update RSA Keys when primes change
+  useEffect(() => {
+    if (isPrime(p) && isPrime(q) && p !== q) {
+      const k = generateKeys(p, q);
+      setKeys(k);
+    }
+  }, [p, q]);
+
   // Auto-update result when inputs change
   useEffect(() => {
     let output = "";
     if (activeCipher === "caesar") {
       output = caesarCipher(message, caesarShift, mode === "decrypt");
-    } else {
+    } else if (activeCipher === "vigenere") {
       output = vigenereCipher(message, vigenereKey, mode === "decrypt");
+    } else if (activeCipher === "rsa") {
+       if (mode === "encrypt") {
+         output = rsaEncrypt(message, keys.publicKey.e, keys.publicKey.n);
+       } else {
+         output = rsaDecrypt(message, keys.privateKey.d, keys.privateKey.n);
+       }
     }
     setResult(output);
-  }, [message, caesarShift, vigenereKey, mode, activeCipher]);
+  }, [message, caesarShift, vigenereKey, mode, activeCipher, keys]);
 
   const handleAction = (newMode: "encrypt" | "decrypt") => {
     setMode(newMode);
@@ -228,6 +290,9 @@ export default function Home() {
     setMessage("");
     setCaesarShift(3);
     setVigenereKey("MATHS");
+    // Reset RSA default primes
+    setP(11);
+    setQ(17);
     setMode("encrypt");
     setResult("");
   };
@@ -236,27 +301,53 @@ export default function Home() {
   const getExplanationData = () => {
     const cleanMessage = message.toUpperCase().replace(/[^A-Z]/g, "");
     const firstChar = cleanMessage.length > 0 ? cleanMessage[0] : "A";
-    const charIndex = ALPHABET.indexOf(firstChar);
+    const charIndex = ALPHABET.indexOf(firstChar) + 1; // RSA uses 1-based index here for math
     
     let shift = 0;
     let keyChar = "";
+    let rsaCalc = { m: 0, e: 0, n: 0, res: 0, step1: "", step2: "" };
     
     if (activeCipher === "caesar") {
       shift = caesarShift;
-    } else {
+    } else if (activeCipher === "vigenere") {
       const cleanKey = vigenereKey.toUpperCase().replace(/[^A-Z]/g, "");
       keyChar = cleanKey.length > 0 ? cleanKey[0] : "A";
       shift = ALPHABET.indexOf(keyChar);
+    } else if (activeCipher === "rsa") {
+      // RSA explanation logic
+      const m = charIndex; // Using 1-based index (A=1) for RSA demo
+      if (mode === "encrypt") {
+        rsaCalc = {
+          m: m,
+          e: keys.publicKey.e,
+          n: keys.publicKey.n,
+          res: Number(BigInt(m) ** BigInt(keys.publicKey.e) % BigInt(keys.publicKey.n)),
+          step1: `${firstChar} → ${m}`,
+          step2: `${m}^${keys.publicKey.e} mod ${keys.publicKey.n}`
+        };
+      } else {
+        // For decryption explanation, take the first number from message
+        const nums = message.trim().split(" ");
+        const firstNum = parseInt(nums[0]) || 0;
+        rsaCalc = {
+          m: firstNum,
+          e: keys.privateKey.d, // using d as exponent
+          n: keys.privateKey.n,
+          res: Number(BigInt(firstNum) ** BigInt(keys.privateKey.d) % BigInt(keys.privateKey.n)),
+          step1: `${firstNum}`,
+          step2: `${firstNum}^${keys.privateKey.d} mod ${keys.privateKey.n}`
+        };
+      }
     }
 
-    // Adjust shift for decryption if needed
+    // Adjust shift for decryption if needed (Caesar/Vigenere)
     const effectiveShift = mode === "decrypt" ? (26 - (shift % 26)) % 26 : shift;
     
-    const sum = charIndex + effectiveShift;
+    const sum = (ALPHABET.indexOf(firstChar)) + effectiveShift;
     const newIndex = sum % 26;
     const newChar = ALPHABET[newIndex];
 
-    return { firstChar, charIndex, shift, keyChar, sum, newIndex, newChar, effectiveShift };
+    return { firstChar, charIndex: ALPHABET.indexOf(firstChar), shift, keyChar, sum, newIndex, newChar, effectiveShift, rsaCalc };
   };
 
   const explanation = getExplanationData();
@@ -304,12 +395,15 @@ export default function Home() {
           <div className="lg:col-span-7 space-y-6">
             
             <Tabs defaultValue="caesar" value={activeCipher} onValueChange={(v) => setActiveCipher(v as any)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-14 bg-white/50 backdrop-blur p-1 rounded-2xl shadow-sm border border-white/40">
-                <TabsTrigger value="caesar" className="rounded-xl text-base font-medium data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-md transition-all">
+              <TabsList className="grid w-full grid-cols-3 h-14 bg-white/50 backdrop-blur p-1 rounded-2xl shadow-sm border border-white/40">
+                <TabsTrigger value="caesar" className="rounded-xl text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-md transition-all">
                   {t.tab_caesar}
                 </TabsTrigger>
-                <TabsTrigger value="vigenere" className="rounded-xl text-base font-medium data-[state=active]:bg-white data-[state=active]:text-cyan-600 data-[state=active]:shadow-md transition-all">
+                <TabsTrigger value="vigenere" className="rounded-xl text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-cyan-600 data-[state=active]:shadow-md transition-all">
                   {t.tab_vigenere}
+                </TabsTrigger>
+                <TabsTrigger value="rsa" className="rounded-xl text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-md transition-all">
+                  {t.tab_rsa}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -374,7 +468,7 @@ export default function Home() {
                       <span>A=Z</span>
                     </div>
                   </div>
-                ) : (
+                ) : activeCipher === "vigenere" ? (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <label className="text-sm font-bold text-cyan-900 uppercase tracking-wider flex items-center gap-2">
@@ -393,6 +487,50 @@ export default function Home() {
                       {t.key_desc}
                     </p>
                   </div>
+                ) : (
+                  <div className="space-y-4">
+                     <div className="flex justify-between items-center">
+                      <label className="text-sm font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
+                        <Binary className="w-4 h-4 text-emerald-600" />
+                        {t.rsa_primes_label}
+                      </label>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-xs text-emerald-600 font-bold">p (premier)</span>
+                        <Input 
+                          type="number" 
+                          value={p} 
+                          onChange={(e) => setP(parseInt(e.target.value) || 0)} 
+                          className="bg-white border-emerald-200 focus:border-emerald-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                         <span className="text-xs text-emerald-600 font-bold">q (premier)</span>
+                        <Input 
+                          type="number" 
+                          value={q} 
+                          onChange={(e) => setQ(parseInt(e.target.value) || 0)} 
+                          className="bg-white border-emerald-200 focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="bg-emerald-100/50 p-3 rounded-xl border border-emerald-100">
+                        <div className="text-[10px] uppercase text-emerald-500 font-bold mb-1">{t.rsa_public_key}</div>
+                        <div className="font-mono text-emerald-800 font-bold text-lg">({keys.publicKey.e}, {keys.publicKey.n})</div>
+                      </div>
+                      <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                        <div className="text-[10px] uppercase text-red-500 font-bold mb-1">{t.rsa_private_key}</div>
+                        <div className="font-mono text-red-800 font-bold text-lg">({keys.privateKey.d}, {keys.privateKey.n})</div>
+                      </div>
+                    </div>
+                     <p className="text-xs text-emerald-600/70 ml-1">
+                      {t.rsa_warn}
+                    </p>
+                  </div>
                 )}
               </div>
 
@@ -404,7 +542,8 @@ export default function Home() {
                     mode === "encrypt" 
                       ? activeCipher === "caesar" 
                         ? "bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 scale-[1.02]" 
-                        : "bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-200 scale-[1.02]"
+                        : activeCipher === "vigenere" ? "bg-cyan-600 hover:bg-cyan-700 shadow-lg shadow-cyan-200 scale-[1.02]"
+                        : "bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 scale-[1.02]"
                       : "hover:bg-slate-50 border-slate-200 text-slate-500"
                   }`}
                   data-testid="btn-encrypt"
@@ -433,13 +572,17 @@ export default function Home() {
               layout
               className={`result-card rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-500 bg-white border-2 ${
                 mode === "encrypt" 
-                  ? activeCipher === "caesar" ? "border-indigo-100 shadow-xl shadow-indigo-100" : "border-cyan-100 shadow-xl shadow-cyan-100"
+                  ? activeCipher === "caesar" ? "border-indigo-100 shadow-xl shadow-indigo-100" 
+                    : activeCipher === "vigenere" ? "border-cyan-100 shadow-xl shadow-cyan-100" 
+                    : "border-emerald-100 shadow-xl shadow-emerald-100"
                   : "border-emerald-100 shadow-xl shadow-emerald-100"
               }`}
             >
               <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r opacity-80 ${
                  mode === "encrypt" 
-                  ? activeCipher === "caesar" ? "from-indigo-400 via-purple-400 to-indigo-400" : "from-cyan-400 via-teal-400 to-cyan-400"
+                  ? activeCipher === "caesar" ? "from-indigo-400 via-purple-400 to-indigo-400" 
+                    : activeCipher === "vigenere" ? "from-cyan-400 via-teal-400 to-cyan-400"
+                    : "from-emerald-400 via-green-400 to-emerald-400"
                   : "from-emerald-400 via-green-400 to-emerald-400"
               }`} />
               
@@ -447,7 +590,7 @@ export default function Home() {
                 <label className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${
                     mode === "encrypt" 
-                      ? activeCipher === "caesar" ? "bg-indigo-500" : "bg-cyan-500"
+                      ? activeCipher === "caesar" ? "bg-indigo-500" : activeCipher === "vigenere" ? "bg-cyan-500" : "bg-emerald-500"
                       : "bg-emerald-500"
                   }`}></span>
                   {t.result_label}
@@ -464,7 +607,7 @@ export default function Home() {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-2xl md:text-3xl font-mono font-medium text-slate-800 break-all leading-relaxed w-full text-left"
-                    style={{ direction: 'ltr' }} // Cipher text is usually LTR (A-Z)
+                    style={{ direction: 'ltr' }} 
                     data-testid="text-result"
                   >
                     {result}
@@ -489,62 +632,92 @@ export default function Home() {
                         {t.dialog_title}
                       </DialogTitle>
                       <DialogDescription>
-                        {t.dialog_desc} <span className="font-bold text-indigo-600">"{explanation.firstChar}"</span>.
+                         {activeCipher === "rsa" ? t.dialog_desc : 
+                           <>{t.dialog_desc} <span className="font-bold text-indigo-600">"{explanation.firstChar}"</span>.</>
+                         }
                       </DialogDescription>
                     </DialogHeader>
                     
                     <div className="space-y-6 py-4">
-                      {/* Visual Equation */}
-                      <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
-                        <div className="flex flex-col items-center">
-                          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-slate-700 border border-slate-200">
-                            {explanation.firstChar}
+                      {activeCipher === "rsa" ? (
+                         // RSA Explanation
+                         <div className="space-y-4">
+                           <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                             <div className="flex justify-between mb-2">
+                               <span className="text-sm font-bold text-emerald-800">{t.dialog_rsa_step1}</span>
+                               <span className="font-mono">{explanation.firstChar} → {explanation.rsaCalc.m}</span>
+                             </div>
+                             <div className="flex justify-between mb-2">
+                               <span className="text-sm font-bold text-emerald-800">{t.dialog_rsa_step2}</span>
+                               <span className="font-mono">{explanation.rsaCalc.m}^{explanation.rsaCalc.e}</span>
+                             </div>
+                             <div className="flex justify-between mb-2">
+                               <span className="text-sm font-bold text-emerald-800">{t.dialog_rsa_step3}</span>
+                               <span className="font-mono">mod {explanation.rsaCalc.n}</span>
+                             </div>
+                              <div className="border-t border-emerald-200 pt-2 flex justify-between">
+                               <span className="text-sm font-bold text-emerald-800">{t.dialog_rsa_step4}</span>
+                               <span className="font-mono font-bold text-lg">{explanation.rsaCalc.res}</span>
+                             </div>
+                           </div>
+                           <p className="text-xs text-center text-slate-500 italic">
+                             RSA travaille avec des nombres très grands. Ici, nous utilisons de petits nombres premiers pour l'exemple.
+                           </p>
+                         </div>
+                      ) : (
+                        // Caesar/Vigenere Explanation
+                        <>
+                          <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
+                            <div className="flex flex-col items-center">
+                              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl font-bold text-slate-700 border border-slate-200">
+                                {explanation.firstChar}
+                              </div>
+                              <span className="text-xs text-slate-400 mt-1 font-mono">{t.dialog_index} {explanation.charIndex}</span>
+                            </div>
+                            
+                            <div className="text-slate-300 font-bold text-xl">+</div>
+                            
+                            <div className="flex flex-col items-center">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border ${activeCipher === 'caesar' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-cyan-100 text-cyan-700 border-cyan-200'}`}>
+                                {activeCipher === 'caesar' ? explanation.shift : explanation.keyChar}
+                              </div>
+                              <span className="text-xs text-slate-400 mt-1 font-mono">
+                                {activeCipher === 'caesar' ? t.dialog_shift : `${t.dialog_key} "${explanation.keyChar}"`}
+                              </span>
+                            </div>
+
+                            <div className="text-slate-300 font-bold text-xl">=</div>
+
+                            <div className="flex flex-col items-center">
+                              <div className="w-12 h-12 rounded-xl bg-slate-800 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                                {explanation.newChar}
+                              </div>
+                              <span className="text-xs text-slate-400 mt-1 font-mono">{t.dialog_index} {explanation.newIndex}</span>
+                            </div>
                           </div>
-                          <span className="text-xs text-slate-400 mt-1 font-mono">{t.dialog_index} {explanation.charIndex}</span>
-                        </div>
-                        
-                        <div className="text-slate-300 font-bold text-xl">+</div>
-                        
-                        <div className="flex flex-col items-center">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border ${activeCipher === 'caesar' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-cyan-100 text-cyan-700 border-cyan-200'}`}>
-                            {activeCipher === 'caesar' ? explanation.shift : explanation.keyChar}
+
+                          <div className="bg-slate-50 rounded-xl p-4 space-y-2 border border-slate-100 text-sm">
+                            <p className="font-semibold text-slate-700 mb-2">{t.dialog_details}</p>
+                            <div className="grid grid-cols-[1fr_auto] gap-2 font-mono text-slate-600">
+                              <span>{t.dialog_step1}</span>
+                              <span className="font-bold">{explanation.charIndex}</span>
+                              
+                              <span>{t.dialog_step2}</span>
+                              <span className="font-bold" dir="ltr">{explanation.charIndex} + {explanation.effectiveShift} = {explanation.sum}</span>
+                              
+                              <span>{t.dialog_step3}</span>
+                              <span className="font-bold" dir="ltr">{explanation.sum} % 26 = {explanation.newIndex}</span>
+                              
+                              <span>{t.dialog_step4}</span>
+                              <span className="font-bold text-indigo-600">"{explanation.newChar}"</span>
+                            </div>
                           </div>
-                          <span className="text-xs text-slate-400 mt-1 font-mono">
-                            {activeCipher === 'caesar' ? t.dialog_shift : `${t.dialog_key} "${explanation.keyChar}"`}
-                          </span>
-                        </div>
 
-                        <div className="text-slate-300 font-bold text-xl">=</div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="w-12 h-12 rounded-xl bg-slate-800 text-white flex items-center justify-center text-xl font-bold shadow-lg">
-                            {explanation.newChar}
+                          <div className="text-xs text-center text-slate-400 italic">
+                            {t.dialog_footer}
                           </div>
-                          <span className="text-xs text-slate-400 mt-1 font-mono">{t.dialog_index} {explanation.newIndex}</span>
-                        </div>
-                      </div>
-
-                      {/* Detailed Steps */}
-                      <div className="bg-slate-50 rounded-xl p-4 space-y-2 border border-slate-100 text-sm">
-                        <p className="font-semibold text-slate-700 mb-2">{t.dialog_details}</p>
-                        <div className="grid grid-cols-[1fr_auto] gap-2 font-mono text-slate-600">
-                          <span>{t.dialog_step1}</span>
-                          <span className="font-bold">{explanation.charIndex}</span>
-                          
-                          <span>{t.dialog_step2}</span>
-                          <span className="font-bold" dir="ltr">{explanation.charIndex} + {explanation.effectiveShift} = {explanation.sum}</span>
-                          
-                          <span>{t.dialog_step3}</span>
-                          <span className="font-bold" dir="ltr">{explanation.sum} % 26 = {explanation.newIndex}</span>
-                          
-                          <span>{t.dialog_step4}</span>
-                          <span className="font-bold text-indigo-600">"{explanation.newChar}"</span>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-center text-slate-400 italic">
-                        {t.dialog_footer}
-                      </div>
+                        </>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>
@@ -559,7 +732,8 @@ export default function Home() {
             <div className={`rounded-3xl p-6 text-white shadow-xl transition-colors duration-500 relative overflow-hidden ${
               activeCipher === "caesar" 
                 ? "bg-gradient-to-br from-indigo-600 to-purple-700 shadow-indigo-500/20" 
-                : "bg-gradient-to-br from-cyan-600 to-teal-700 shadow-cyan-500/20"
+                : activeCipher === "vigenere" ? "bg-gradient-to-br from-cyan-600 to-teal-700 shadow-cyan-500/20"
+                : "bg-gradient-to-br from-emerald-600 to-green-700 shadow-emerald-500/20"
             }`}>
               {/* Decorative background elements */}
               <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -578,15 +752,20 @@ export default function Home() {
                   <p className="text-white/90 text-sm leading-relaxed">
                     {activeCipher === "caesar" 
                       ? t.math_desc_caesar 
-                      : t.math_desc_vigenere}
+                      : activeCipher === "vigenere" ? t.math_desc_vigenere : t.math_desc_rsa}
                   </p>
 
                   <div className="bg-black/20 rounded-xl p-4 font-mono text-sm text-center border border-white/10 shadow-inner">
                     <div className="mb-2 text-white/60 text-xs uppercase tracking-widest">{t.math_formula_label}</div>
                     {activeCipher === "caesar" ? (
                       <span className="text-lg font-bold" dir="ltr">L' = (L + {caesarShift}) mod 26</span>
-                    ) : (
+                    ) : activeCipher === "vigenere" ? (
                       <span className="text-lg font-bold" dir="ltr">L' = (L + K<span className="text-xs align-sub">i</span>) mod 26</span>
+                    ) : (
+                       <div className="flex flex-col gap-2">
+                         <span className="text-lg font-bold" dir="ltr">C = M<sup className="text-xs">e</sup> mod n</span>
+                         <span className="text-xs opacity-70" dir="ltr">M = C<sup className="text-[10px]">d</sup> mod n</span>
+                       </div>
                     )}
                   </div>
 
@@ -608,51 +787,49 @@ export default function Home() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
-                  <span className="text-left rtl:text-right">{t.comp_col_criteria}</span>
-                  <span className="text-indigo-600">{activeCipher === "caesar" ? "César" : "Caesar"}</span>
-                  <span className="text-cyan-600">{activeCipher === "vigenere" ? "Vigenère" : "Vigenère"}</span>
+                <div className="grid grid-cols-4 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
+                  <span className="text-left rtl:text-right col-span-1">{t.comp_col_criteria}</span>
+                  <span className="text-indigo-600">César</span>
+                  <span className="text-cyan-600">Vig.</span>
+                  <span className="text-emerald-600">RSA</span>
                 </div>
 
                 {/* Row 1: Simplicity */}
-                <div className="grid grid-cols-3 text-sm items-center py-3 border-b border-slate-100">
-                  <span className="font-medium text-slate-600">{t.comp_row_simplicity}</span>
-                  <div className="flex justify-center">
-                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold text-center">{t.comp_val_simple}</span>
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold text-center">{t.comp_val_medium}</span>
-                  </div>
+                <div className="grid grid-cols-4 text-xs md:text-sm items-center py-3 border-b border-slate-100">
+                  <span className="font-medium text-slate-600 col-span-1">{t.comp_row_simplicity}</span>
+                  <div className="flex justify-center"><span className="bg-green-100 text-green-700 px-1 py-0.5 rounded text-[10px] font-bold text-center">{t.comp_val_simple}</span></div>
+                  <div className="flex justify-center"><span className="bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded text-[10px] font-bold text-center">{t.comp_val_medium}</span></div>
+                  <div className="flex justify-center"><span className="bg-red-100 text-red-700 px-1 py-0.5 rounded text-[10px] font-bold text-center">{t.comp_val_complex}</span></div>
                 </div>
 
                 {/* Row 2: Security */}
-                <div className="grid grid-cols-3 text-sm items-center py-3 border-b border-slate-100">
-                  <span className="font-medium text-slate-600">{t.comp_row_security}</span>
-                  <div className="flex justify-center">
-                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold text-center">{t.comp_val_weak}</span>
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold text-center">{t.comp_val_better}</span>
-                  </div>
+                <div className="grid grid-cols-4 text-xs md:text-sm items-center py-3 border-b border-slate-100">
+                  <span className="font-medium text-slate-600 col-span-1">{t.comp_row_security}</span>
+                   <div className="flex justify-center"><span className="bg-red-100 text-red-700 px-1 py-0.5 rounded text-[10px] font-bold text-center">{t.comp_val_weak}</span></div>
+                   <div className="flex justify-center"><span className="bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded text-[10px] font-bold text-center">{t.comp_val_better}</span></div>
+                   <div className="flex justify-center"><span className="bg-green-100 text-green-700 px-1 py-0.5 rounded text-[10px] font-bold text-center">{t.comp_val_strong}</span></div>
                 </div>
 
                 {/* Row 3: Key Type */}
-                <div className="grid grid-cols-3 text-sm items-center py-3 border-b border-slate-100">
-                  <span className="font-medium text-slate-600">{t.comp_row_key}</span>
-                  <div className="text-center text-slate-500 text-xs">{t.comp_val_number}</div>
-                  <div className="text-center text-slate-500 text-xs">{t.comp_val_word}</div>
+                <div className="grid grid-cols-4 text-xs md:text-sm items-center py-3 border-b border-slate-100">
+                  <span className="font-medium text-slate-600 col-span-1">{t.comp_row_key}</span>
+                  <div className="text-center text-slate-500 text-[10px]">{t.comp_val_number}</div>
+                  <div className="text-center text-slate-500 text-[10px]">{t.comp_val_word}</div>
+                  <div className="text-center text-slate-500 text-[10px]">{t.comp_val_pair}</div>
                 </div>
                 
                  {/* Row 4: Vulnerability */}
-                 <div className="grid grid-cols-3 text-sm items-center py-3">
-                  <span className="font-medium text-slate-600">{t.comp_row_weakness}</span>
-                  <div className="text-center text-slate-500 text-xs">{t.comp_val_freq}</div>
-                  <div className="text-center text-slate-500 text-xs">{t.comp_val_repeat}</div>
+                 <div className="grid grid-cols-4 text-xs md:text-sm items-center py-3">
+                  <span className="font-medium text-slate-600 col-span-1">{t.comp_row_weakness}</span>
+                  <div className="text-center text-slate-500 text-[10px]">{t.comp_val_freq}</div>
+                  <div className="text-center text-slate-500 text-[10px]">{t.comp_val_repeat}</div>
+                  <div className="text-center text-slate-500 text-[10px]">{t.comp_val_internet}</div>
                 </div>
               </div>
             </div>
 
             {/* Alphabet Visualization (Simplified for Comparison view) */}
+            {activeCipher !== "rsa" ? (
             <div className="glass-card rounded-3xl p-5 bg-white/40 backdrop-blur-sm border border-white/40">
                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center">
                  {t.preview_title}
@@ -692,6 +869,19 @@ export default function Home() {
                   )}
                </div>
             </div>
+            ) : (
+               // RSA Preview just shows numbers
+                <div className="glass-card rounded-3xl p-5 bg-white/40 backdrop-blur-sm border border-white/40">
+                  <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-4 flex items-center">
+                     {t.preview_title} (Nombres)
+                  </h3>
+                   <div className="flex flex-wrap gap-2 justify-center font-mono text-xs text-emerald-800" dir="ltr">
+                     {result ? result.split(" ").slice(0, 10).map((n, i) => (
+                       <span key={i} className="bg-emerald-100 px-2 py-1 rounded">{n}</span>
+                     )) : <span className="text-slate-400 italic">{t.preview_empty}</span>}
+                   </div>
+                </div>
+            )}
 
           </div>
         </div>
