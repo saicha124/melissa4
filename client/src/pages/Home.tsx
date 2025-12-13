@@ -387,7 +387,7 @@ export default function Home() {
           {/* Project Info Banner */}
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 mb-4 shadow-sm">
             <div className="text-sm font-bold text-amber-800 mb-1">
-              {lang === "ar" ? "مشروع الرياضيات" : "Projet de Mathématiques"}
+              {lang === "ar" ? "مشروع الرياضيات" : lang === "en" ? "Mathematics Project" : "Projet de Mathématiques"}
             </div>
             <div className="text-lg font-bold text-slate-800">
               SAIDI Melissa
@@ -395,6 +395,8 @@ export default function Home() {
             <div className="text-xs text-slate-600 mt-1">
               {lang === "ar" ? (
                 <span className="font-cairo">ثانوية الرياضيات محند مخبي</span>
+              ) : lang === "en" ? (
+                <span>Mohand Mokhbi Mathematics High School</span>
               ) : (
                 <span>Lycée des Mathématiques Mohand Mokhbi</span>
               )}
