@@ -879,7 +879,7 @@ export default function Home() {
               rsaKeys={keys}
             />
 
-            {/* Step-by-Step Animation */}
+            {/* Step-by-Step Animation - Encryption */}
             {encryptMessage && (
               <Card className="bg-white/80 backdrop-blur border-0 shadow-lg">
                 <CardContent className="p-5">
@@ -890,6 +890,23 @@ export default function Home() {
                     keyword={vigenereKey}
                     rsaKeys={keys}
                     isEncrypting={true}
+                    lang={lang}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step-by-Step Animation - Decryption */}
+            {decryptMessage && (
+              <Card className="bg-white/80 backdrop-blur border-0 shadow-lg">
+                <CardContent className="p-5">
+                  <StepByStepAnimation
+                    cipher={activeCipher}
+                    message={decryptMessage}
+                    shift={caesarShift}
+                    keyword={vigenereKey}
+                    rsaKeys={keys}
+                    isEncrypting={false}
                     lang={lang}
                   />
                 </CardContent>
