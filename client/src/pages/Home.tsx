@@ -883,6 +883,14 @@ export default function Home() {
             {encryptMessage && (
               <Card className="bg-white/80 backdrop-blur border-0 shadow-lg">
                 <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                    <div className="p-2 rounded-lg bg-green-100">
+                      <Lock className="w-4 h-4 text-green-600" />
+                    </div>
+                    <h3 className="font-bold text-green-700">
+                      {lang === "fr" ? "Animation Chiffrement" : lang === "ar" ? "رسوم متحركة للتشفير" : "Encryption Animation"}
+                    </h3>
+                  </div>
                   <StepByStepAnimation
                     cipher={activeCipher}
                     message={encryptMessage}
@@ -900,6 +908,14 @@ export default function Home() {
             {decryptMessage && (
               <Card className="bg-white/80 backdrop-blur border-0 shadow-lg">
                 <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                    <div className="p-2 rounded-lg bg-blue-100">
+                      <Unlock className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <h3 className="font-bold text-blue-700">
+                      {lang === "fr" ? "Animation Déchiffrement" : lang === "ar" ? "رسوم متحركة لفك التشفير" : "Decryption Animation"}
+                    </h3>
+                  </div>
                   <StepByStepAnimation
                     cipher={activeCipher}
                     message={decryptMessage}
