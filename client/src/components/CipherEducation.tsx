@@ -137,9 +137,11 @@ const educationContent = {
           { step: "1", description: "n = p × q = 11 × 17 = 187" },
           { step: "2", description: "φ(n) = (p-1)(q-1) = 10 × 16 = 160" },
           { step: "3", description: "Choisir e copremier avec φ(n): e = 3" },
-          { step: "4", description: "Calculer d tel que e×d ≡ 1 (mod φ): d = 107" },
-          { step: "5", description: "Explication: 160 = 53×3 + 1 → 1 = 160 - 53×3 → d ≡ -53 ≡ 107 (mod 160)" },
-          { step: "6", description: "Vérification: 3 × 107 = 321 = 2×160 + 1 ≡ 1 (mod 160)" }
+          { step: "4", description: "Calculer d tel que 3×d ≡ 1 (mod 160)" },
+          { step: "5", description: "Division euclidienne: 160 ÷ 3 = 53 reste 1, donc 160 = 53×3 + 1" },
+          { step: "6", description: "Réarrangement: 1 = 160 - 53×3, donc 3×(-53) ≡ 1 (mod 160)" },
+          { step: "7", description: "Conversion: -53 mod 160 = 160 - 53 = 107, donc d = 107" },
+          { step: "8", description: "Vérification: 3 × 107 = 321 = 2×160 + 1 ≡ 1 (mod 160)" }
         ],
         encryption: "Pour chiffrer M=7: C = 7³ mod 187 = 343 mod 187 = 156",
         decryption: "Pour déchiffrer C=156: M = 156¹⁰⁷ mod 187 = 7"
@@ -157,9 +159,11 @@ const educationContent = {
           { step: "1", description: "n = p × q = 11 × 17 = 187" },
           { step: "2", description: "φ(n) = (p-1)(q-1) = 10 × 16 = 160" },
           { step: "3", description: "Choose e coprime with φ(n): e = 3" },
-          { step: "4", description: "Calculate d such that e×d ≡ 1 (mod φ): d = 107" },
-          { step: "5", description: "Explanation: 160 = 53×3 + 1 → 1 = 160 - 53×3 → d ≡ -53 ≡ 107 (mod 160)" },
-          { step: "6", description: "Verification: 3 × 107 = 321 = 2×160 + 1 ≡ 1 (mod 160)" }
+          { step: "4", description: "Calculate d such that 3×d ≡ 1 (mod 160)" },
+          { step: "5", description: "Euclidean division: 160 ÷ 3 = 53 remainder 1, so 160 = 53×3 + 1" },
+          { step: "6", description: "Rearrange: 1 = 160 - 53×3, so 3×(-53) ≡ 1 (mod 160)" },
+          { step: "7", description: "Convert: -53 mod 160 = 160 - 53 = 107, so d = 107" },
+          { step: "8", description: "Verification: 3 × 107 = 321 = 2×160 + 1 ≡ 1 (mod 160)" }
         ],
         encryption: "To encrypt M=7: C = 7³ mod 187 = 343 mod 187 = 156",
         decryption: "To decrypt C=156: M = 156¹⁰⁷ mod 187 = 7"
@@ -177,9 +181,11 @@ const educationContent = {
           { step: "1", description: "n = p × q = 11 × 17 = 187" },
           { step: "2", description: "φ(n) = (p-1)(q-1) = 10 × 16 = 160" },
           { step: "3", description: "اختيار e أولي نسبياً مع φ(n): e = 3" },
-          { step: "4", description: "حساب d بحيث e×d ≡ 1 (mod φ): d = 107" },
-          { step: "5", description: "الشرح: 160 = 53×3 + 1 → 1 = 160 - 53×3 → d ≡ -53 ≡ 107 (mod 160)" },
-          { step: "6", description: "التحقق: 3 × 107 = 321 = 2×160 + 1 ≡ 1 (mod 160)" }
+          { step: "4", description: "حساب d بحيث 3×d ≡ 1 (mod 160)" },
+          { step: "5", description: "القسمة الإقليدية: 160 ÷ 3 = 53 والباقي 1، إذن 160 = 53×3 + 1" },
+          { step: "6", description: "إعادة الترتيب: 1 = 160 - 53×3، إذن 3×(-53) ≡ 1 (mod 160)" },
+          { step: "7", description: "التحويل: -53 mod 160 = 160 - 53 = 107، إذن d = 107" },
+          { step: "8", description: "التحقق: 3 × 107 = 321 = 2×160 + 1 ≡ 1 (mod 160)" }
         ],
         encryption: "للتشفير M=7: C = 7³ mod 187 = 156",
         decryption: "لفك التشفير C=156: M = 156¹⁰⁷ mod 187 = 7"
