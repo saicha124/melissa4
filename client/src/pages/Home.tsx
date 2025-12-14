@@ -414,7 +414,7 @@ export default function Home() {
           <DropdownMenuContent align="end" className="rounded-xl">
             <DropdownMenuItem onClick={() => setLang("fr")} className="cursor-pointer">🇫🇷 Français</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setLang("en")} className="cursor-pointer">🇺🇸 English</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLang("ar")} className="cursor-pointer font-cairo">🇸🇦 العربية</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLang("ar")} className="cursor-pointer font-cairo">🇩🇿 العربية</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
