@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptographie - César vs Vigenère vs RSA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #fef9e7 0%, #fef3c7 100%);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+            border: 1px solid #fde68a;
+        }
+        
+        .header-subtitle {
+            color: #d97706;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .header-title {
+            color: #1f2937;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .header-school {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 8px 20px;
+            margin: 20px 0;
+        }
+        
+        .badge-icon {
+            font-size: 18px;
+        }
+        
+        .badge-text {
+            color: #6366f1;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .main-title {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        
+        .main-title h1 {
+            font-size: 48px;
+            font-weight: 800;
+        }
+        
+        .main-title .cesar {
+            color: #3b82f6;
+        }
+        
+        .main-title .vs {
+            color: #1f2937;
+        }
+        
+        .main-title .vigenere {
+            color: #f97316;
+        }
+        
+        .main-title .rsa {
+            color: #ef4444;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab:hover:not(.active) {
+            background: #f3f4f6;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .clear-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .clear-btn:hover {
+            color: #6b7280;
+        }
+        
+        .param-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .param-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .slider-value {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-label {
+            display: block;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .input-field:focus {
+            border-color: #3b82f6;
+        }
+        
+        textarea.input-field {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .result-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .result-label {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .result-text {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+        }
+        
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .info-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .info-description {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .formula-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .formula-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .legend-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .alphabet-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 16px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        
+        .letter-box {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .letter-original {
+            color: #6b7280;
+        }
+        
+        .letter-shifted {
+            color: #3b82f6;
+        }
+        
+        .prime-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .key-display {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .key-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .key-row:last-child {
+            border-bottom: none;
+        }
+        
+        .key-label {
+            opacity: 0.7;
+        }
+        
+        .key-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-title h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-subtitle">Projet de Mathematiques</div>
+            <div class="header-title">SAIDI Melissa</div>
+            <div class="header-school">Lycee des Mathematiques Mohand Mokhbi</div>
+        </div>
+        
+        <div style="text-align: center;">
+            <div class="badge">
+                <span class="badge-icon">*</span>
+                <span class="badge-text">CRYPTOGRAPHIE & MATHEMATIQUES</span>
+            </div>
+        </div>
+        
+        <div class="main-title">
+            <h1>
+                <span class="cesar">Cesar</span>
+                <span class="vs"> vs </span>
+                <span class="vigenere">Vigenere</span>
+                <span class="vs"> vs </span>
+                <span class="rsa">RSA</span>
+            </h1>
+        </div>
+        
+        <p class="subtitle">Explore trois methodes de chiffrement : du simple decalage a la cryptographie asymetrique moderne.</p>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="cesar">Cesar</button>
+            <button class="tab" data-tab="vigenere">Vigenere</button>
+            <button class="tab" data-tab="rsa">RSA (Asymetrique)</button>
+        </div>
+        
+        <div class="content-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>PARAMETRES DE CLE</span>
+                    </div>
+                    <button class="clear-btn" onclick="clearAll()">Effacer</button>
+                </div>
+                
+                <div id="cesar-params" class="cipher-params">
+                    <div class="param-section">
+                        <div class="param-label">DECALAGE (CLE)</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="cesar-shift" min="1" max="25" value="3">
+                            <div class="slider-value" id="cesar-shift-value">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alphabet-display" id="alphabet-display"></div>
+                </div>
+                
+                <div id="vigenere-params" class="cipher-params hidden">
+                    <div class="param-section">
+                        <div class="input-group">
+                            <label class="input-label">CLE (mot)</label>
+                            <input type="text" class="input-field" id="vigenere-key" value="CLE" placeholder="Entrez la cle...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="rsa-params" class="cipher-params hidden">
+                    <div class="param-section">
+                        <div class="prime-inputs">
+                            <div class="input-group">
+                                <label class="input-label">Nombre premier p</label>
+                                <input type="number" class="input-field" id="rsa-p" value="61">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Nombre premier q</label>
+                                <input type="number" class="input-field" id="rsa-q" value="53">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="width: 100%; margin-top: 12px;" onclick="generateKeys()">Generer les cles</button>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Texte a chiffrer/dechiffrer</label>
+                    <textarea class="input-field" id="input-text" placeholder="Entrez votre message...">BONJOUR</textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="encrypt()">Chiffrer</button>
+                    <button class="btn btn-secondary" onclick="decrypt()">Dechiffrer</button>
+                </div>
+                
+                <div class="result-section">
+                    <div class="result-label">RESULTAT</div>
+                    <div class="result-text" id="result-text"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="info-panel" id="info-cesar">
+                    <div class="info-header">
+                        <div class="info-icon">i</div>
+                        <div class="info-title">Logique Mathematique</div>
+                    </div>
+                    <p class="info-description">Le chiffre de Cesar decale chaque lettre d'un nombre fixe.</p>
+                    <div class="formula-box">
+                        <div class="formula-label">FORMULE DE CHIFFREMENT</div>
+                        <div class="formula">L' = (L + <span id="formula-shift">3</span>) mod 26</div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">L = Lettre Originale</div>
+                        <div class="legend-item">mod = Reste division</div>
+                    </div>
+                </div>
+                
+                <div class="info-panel hidden" id="info-vigenere">
+                    <div class="info-header">
+                        <div class="info-icon">i</div>
+                        <div class="info-title">Logique Mathematique</div>
+                    </div>
+                    <p class="info-description">Le chiffre de Vigenere utilise une cle pour varier le decalage de chaque lettre.</p>
+                    <div class="formula-box">
+                        <div class="formula-label">FORMULE DE CHIFFREMENT</div>
+                        <div class="formula">C[i] = (M[i] + K[i]) mod 26</div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">M = Message</div>
+                        <div class="legend-item">K = Cle (repetee)</div>
+                    </div>
+                </div>
+                
+                <div class="info-panel hidden" id="info-rsa">
+                    <div class="info-header">
+                        <div class="info-icon">i</div>
+                        <div class="info-title">Cryptographie Asymetrique</div>
+                    </div>
+                    <p class="info-description">RSA utilise deux cles : une publique pour chiffrer et une privee pour dechiffrer.</p>
+                    <div class="formula-box">
+                        <div class="formula-label">FORMULES</div>
+                        <div class="formula">C = M^e mod n</div>
+                        <div class="formula" style="margin-top: 8px;">M = C^d mod n</div>
+                    </div>
+                    <div class="key-display" id="rsa-keys">
+                        <div class="key-row">
+                            <span class="key-label">n (p x q)</span>
+                            <span class="key-value" id="key-n">3233</span>
+                        </div>
+                        <div class="key-row">
+                            <span class="key-label">e (public)</span>
+                            <span class="key-value" id="key-e">17</span>
+                        </div>
+                        <div class="key-row">
+                            <span class="key-label">d (prive)</span>
+                            <span class="key-value" id="key-d">2753</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentTab = 'cesar';
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentTab = tab.dataset.tab;
+                updateUI();
+            });
+        });
+        
+        function updateUI() {
+            document.querySelectorAll('.cipher-params').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.info-panel').forEach(p => p.classList.add('hidden'));
+            
+            document.getElementById(currentTab + '-params').classList.remove('hidden');
+            document.getElementById('info-' + currentTab).classList.remove('hidden');
+            
+            if (currentTab === 'cesar') {
+                updateAlphabet();
+            }
+        }
+        
+        const cesarShift = document.getElementById('cesar-shift');
+        const cesarShiftValue = document.getElementById('cesar-shift-value');
+        
+        cesarShift.addEventListener('input', () => {
+            cesarShiftValue.textContent = cesarShift.value;
+            document.getElementById('formula-shift').textContent = cesarShift.value;
+            updateAlphabet();
+        });
+        
+        function updateAlphabet() {
+            const shift = parseInt(cesarShift.value);
+            const container = document.getElementById('alphabet-display');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 26; i++) {
+                const original = String.fromCharCode(65 + i);
+                const shifted = String.fromCharCode(65 + (i + shift) % 26);
+                
+                const box = document.createElement('div');
+                box.className = 'letter-box';
+                box.innerHTML = `<span class="letter-original">${original}</span><span class="letter-shifted">${shifted}</span>`;
+                box.style.flexDirection = 'column';
+                box.style.fontSize = '10px';
+                container.appendChild(box);
+            }
+        }
+        
+        async function encrypt() {
+            const text = document.getElementById('input-text').value;
+            let endpoint, body;
+            
+            if (currentTab === 'cesar') {
+                endpoint = '/api/caesar';
+                body = { text, shift: cesarShift.value, action: 'encrypt' };
+            } else if (currentTab === 'vigenere') {
+                endpoint = '/api/vigenere';
+                body = { text, key: document.getElementById('vigenere-key').value, action: 'encrypt' };
+            } else {
+                endpoint = '/api/rsa';
+                body = { 
+                    text, 
+                    p: document.getElementById('rsa-p').value,
+                    q: document.getElementById('rsa-q').value,
+                    action: 'encrypt' 
+                };
+            }
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            const data = await response.json();
+            document.getElementById('result-text').textContent = data.result;
+            
+            if (currentTab === 'rsa' && data.n) {
+                updateRSAKeys(data);
+            }
+        }
+        
+        async function decrypt() {
+            const text = document.getElementById('input-text').value;
+            let endpoint, body;
+            
+            if (currentTab === 'cesar') {
+                endpoint = '/api/caesar';
+                body = { text, shift: cesarShift.value, action: 'decrypt' };
+            } else if (currentTab === 'vigenere') {
+                endpoint = '/api/vigenere';
+                body = { text, key: document.getElementById('vigenere-key').value, action: 'decrypt' };
+            } else {
+                endpoint = '/api/rsa';
+                body = { 
+                    text, 
+                    p: document.getElementById('rsa-p').value,
+                    q: document.getElementById('rsa-q').value,
+                    action: 'decrypt' 
+                };
+            }
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            const data = await response.json();
+            document.getElementById('result-text').textContent = data.result;
+            
+            if (currentTab === 'rsa' && data.n) {
+                updateRSAKeys(data);
+            }
+        }
+        
+        async function generateKeys() {
+            const p = document.getElementById('rsa-p').value;
+            const q = document.getElementById('rsa-q').value;
+            
+            const response = await fetch('/api/rsa/keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ p, q })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                alert(data.error);
+            } else {
+                updateRSAKeys(data);
+            }
+        }
+        
+        function updateRSAKeys(data) {
+            document.getElementById('key-n').textContent = data.n;
+            document.getElementById('key-e').textContent = data.e;
+            document.getElementById('key-d').textContent = data.d;
+        }
+        
+        function clearAll() {
+            document.getElementById('input-text').value = '';
+            document.getElementById('result-text').textContent = '';
+        }
+        
+        updateAlphabet();
+    </script>
+</body>
+</html>
