@@ -1,0 +1,163 @@
+================================================================================
+        INSTRUCTIONS DE DEPLOIEMENT - Projet Cryptographie
+        Cesar vs Vigenere vs RSA
+================================================================================
+
+Ce fichier contient toutes les instructions pour deployer l'application
+sur differents environnements.
+
+================================================================================
+                        1. DEPLOIEMENT SUR WINDOWS
+================================================================================
+
+PREREQUIS:
+----------
+1. Node.js (version 18 ou superieure)
+   - Telecharger sur : https://nodejs.org/
+   - Choisir la version LTS (Long Term Support)
+   - Installer en suivant les instructions
+
+2. Python (version 3.11 ou superieure) - Optionnel pour l'API Flask
+   - Telecharger sur : https://python.org/
+   - Cocher "Add Python to PATH" lors de l'installation
+
+ETAPES D'INSTALLATION:
+----------------------
+1. Extraire/Copier le dossier du projet sur votre ordinateur
+
+2. Ouvrir l'Invite de commandes (CMD) ou PowerShell
+   - Appuyer sur Win + R
+   - Taper "cmd" et appuyer sur Entree
+
+3. Naviguer vers le dossier du projet:
+   cd C:\chemin\vers\votre\projet
+
+4. Installer les dependances Node.js:
+   npm install
+
+5. (Optionnel) Installer les dependances Python:
+   pip install flask flask-cors
+
+DEMARRAGE DE L'APPLICATION:
+---------------------------
+Option A - Frontend React uniquement:
+   npm run dev:client
+   
+   L'application sera accessible sur : http://localhost:5000
+
+Option B - Avec l'API Flask:
+   Terminal 1: npm run dev:client
+   Terminal 2: python app.py
+   
+   Frontend: http://localhost:5000
+   API: http://localhost:5000
+
+================================================================================
+                        2. DEPLOIEMENT SUR MAC
+================================================================================
+
+PREREQUIS:
+----------
+1. Installer Homebrew (gestionnaire de paquets):
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+2. Installer Node.js:
+   brew install node
+
+3. (Optionnel) Python est deja installe sur Mac
+
+ETAPES:
+-------
+1. Ouvrir le Terminal
+
+2. Naviguer vers le dossier du projet:
+   cd /chemin/vers/votre/projet
+
+3. Installer les dependances:
+   npm install
+
+4. Demarrer l'application:
+   npm run dev:client
+
+================================================================================
+                        3. DEPLOIEMENT SUR LINUX
+================================================================================
+
+PREREQUIS (Ubuntu/Debian):
+--------------------------
+sudo apt update
+sudo apt install nodejs npm python3 python3-pip
+
+ETAPES:
+-------
+1. Naviguer vers le dossier du projet:
+   cd /chemin/vers/votre/projet
+
+2. Installer les dependances:
+   npm install
+
+3. Demarrer l'application:
+   npm run dev:client
+
+================================================================================
+                    4. DEPLOIEMENT EN PRODUCTION (REPLIT)
+================================================================================
+
+Pour rendre votre application accessible publiquement sur Internet:
+
+1. Connectez-vous a Replit (https://replit.com)
+
+2. Ouvrez votre projet
+
+3. Cliquez sur le bouton "Deploy" en haut a droite
+
+4. Suivez les instructions pour publier
+
+5. Votre application sera accessible via une URL publique
+
+================================================================================
+                        5. STRUCTURE DU PROJET
+================================================================================
+
+/client              - Code source du frontend React
+  /src
+    /components      - Composants React
+    /pages           - Pages de l'application
+    /lib             - Fonctions utilitaires (cesar.ts, rsa.ts)
+/server              - Code serveur (optionnel)
+/templates           - Templates HTML pour Flask
+app.py               - API Flask principale
+flask_api.py         - API Flask alternative
+package.json         - Dependances Node.js
+pyproject.toml       - Dependances Python
+
+================================================================================
+                        6. RESOLUTION DES PROBLEMES
+================================================================================
+
+ERREUR: "npm n'est pas reconnu"
+-> Reinstaller Node.js et redemarrer l'ordinateur
+
+ERREUR: "python n'est pas reconnu"
+-> Verifier que Python est ajoute au PATH
+-> Essayer "python3" au lieu de "python"
+
+ERREUR: Port 5000 deja utilise
+-> Fermer les autres applications utilisant ce port
+-> Ou modifier le port dans package.json
+
+ERREUR: Modules non trouves
+-> Supprimer node_modules et reinstaller:
+   rm -rf node_modules
+   npm install
+
+================================================================================
+                        7. CONTACT ET SUPPORT
+================================================================================
+
+Projet realise par: SAIDI Melissa
+Lycee des Mathematiques Mohand Mokhbi
+
+Pour toute question, contactez votre professeur de mathematiques.
+
+================================================================================
