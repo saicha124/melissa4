@@ -485,8 +485,8 @@ export function StepByStepAnimation({
       
       return {
         result: letter,
-        keyChar: `(${d}, ${n})`,
-        calculation: `${c}^${d} mod ${n} = ${result} = ${letter}`
+        keyChar: `(d=${d}, n=${n})`,
+        calculation: `${c}^${d} mod ${n} = ${result} → ${result}=${letter}`
       };
     }
     
@@ -537,7 +537,7 @@ export function StepByStepAnimation({
     } else {
       // RSA encryption (not decryption)
       if (!rsaKeys) return { result: "?", keyChar: "-", calculation: "-" };
-      const m = charPos + 1;
+      const m = charPos + 1; // A=1, B=2, etc.
       const exponent = rsaKeys.publicKey.e;
       const n = rsaKeys.publicKey.n;
       let result = 1;
@@ -548,10 +548,11 @@ export function StepByStepAnimation({
         exp = Math.floor(exp / 2);
         base = (base * base) % n;
       }
+      const originalChar = ALPHABET[charPos];
       return {
         result: String(result),
-        keyChar: `(${exponent}, ${n})`,
-        calculation: `${m}^${exponent} mod ${n} = ${result}`
+        keyChar: `(e=${exponent}, n=${n})`,
+        calculation: `${originalChar}=${m} → ${m}^${exponent} mod ${n} = ${result}`
       };
     }
   };
