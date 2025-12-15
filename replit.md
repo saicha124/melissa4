@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is an educational cryptography application that teaches three encryption methods: Caesar cipher, Vigenere cipher, and RSA asymmetric encryption. The app is built as a French-language interactive tool for learning mathematical cryptography concepts, using Python Flask with pure HTML/CSS/JavaScript.
+This is an educational cryptography application that teaches three encryption methods: Caesar cipher, Vigenere cipher, and RSA asymmetric encryption. The app is built as a French-language interactive tool with a hybrid architecture: React frontend with animations and Python Flask backend for cryptography algorithms.
 
 ## User Preferences
 
@@ -11,34 +11,38 @@ Language preference: French
 
 ## System Architecture
 
-### Backend Architecture
-- **Framework**: Python Flask
-- **Server**: Flask development server (development) / Gunicorn (production)
-- **Templates**: Jinja2 HTML templates
+### Hybrid Architecture
+- **Frontend**: React with TypeScript, Framer Motion animations
+- **Backend**: Python Flask API for cryptography algorithms
+- **Proxy**: Vite proxies /api requests to Flask on port 8000
 
-### Project Structure
-- `app.py` - Main Flask application with all cryptography algorithms and API routes
-- `templates/index.html` - Single-page HTML template with embedded CSS and JavaScript
-- `static/` - Static assets (currently unused)
+### Frontend (React)
+- **Framework**: React 18 with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Animations**: Framer Motion
+- **Build Tool**: Vite
+- Location: `client/src/`
 
-### Cryptography Algorithms (in app.py)
-1. **Caesar Cipher**: Simple letter substitution with fixed shift
-2. **Vigenere Cipher**: Polyalphabetic substitution using a keyword
-3. **RSA**: Asymmetric encryption with public/private key pairs
+### Backend (Python Flask)
+- **File**: `flask_api.py` - Flask API with all cryptography algorithms
+- **Port**: 8000 (internal)
+- **Algorithms**: Caesar, Vigenere, RSA in Python
 
-### API Endpoints
-- `GET /` - Serves the main HTML interface
+### API Endpoints (Flask)
 - `POST /api/caesar` - Caesar cipher encryption/decryption
 - `POST /api/vigenere` - Vigenere cipher encryption/decryption
-- `POST /api/rsa` - RSA encryption/decryption
 - `POST /api/rsa/keys` - Generate RSA key pairs
+- `POST /api/rsa/encrypt` - RSA encryption
+- `POST /api/rsa/decrypt` - RSA decryption
+- `POST /api/rsa/is-prime` - Check if number is prime
+- `POST /api/rsa/mod-pow` - Modular exponentiation
 
 ## Running the Application
 
 ### Development
-```bash
-python app.py
-```
+Two workflows run simultaneously:
+1. **Flask API**: `python flask_api.py` on port 8000
+2. **Start application**: `npm run dev` on port 5000
 
 ### Production
 ```bash
@@ -48,5 +52,9 @@ gunicorn --bind=0.0.0.0:5000 --reuse-port app:app
 ## External Dependencies
 
 ### Python Packages
-- **Flask**: Web framework
-- **Gunicorn**: Production WSGI server
+- Flask: Web framework
+- Flask-CORS: Cross-origin support
+- Gunicorn: Production WSGI server
+
+### Node.js Packages
+- React, Vite, Tailwind CSS, Framer Motion, shadcn/ui
