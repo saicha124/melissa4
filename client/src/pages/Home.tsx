@@ -240,6 +240,15 @@ export default function Home() {
   
   const [activeCipher, setActiveCipher] = useState<"caesar" | "vigenere" | "rsa">("caesar");
   
+  // Clear fields when changing cipher method
+  const handleCipherChange = (newCipher: "caesar" | "vigenere" | "rsa") => {
+    setActiveCipher(newCipher);
+    setEncryptMessage("");
+    setDecryptMessage("");
+    setEncryptResult("");
+    setDecryptResult("");
+  };
+  
   const [encryptMessage, setEncryptMessage] = useState("");
   const [decryptMessage, setDecryptMessage] = useState("");
   const [encryptResult, setEncryptResult] = useState("");
@@ -284,6 +293,11 @@ export default function Home() {
       output = rsaEncrypt(encryptMessage, keys.publicKey.e, keys.publicKey.n);
     }
     setEncryptResult(output);
+    
+    // Auto-fill decrypt field with encryption result
+    if (output) {
+      setDecryptMessage(output);
+    }
     
     // Trigger animation when there's input
     if (encryptMessage.length > 0) {
@@ -461,7 +475,7 @@ export default function Home() {
           {/* Main Interface */}
           <div className="lg:col-span-7 space-y-6">
             
-            <Tabs defaultValue="caesar" value={activeCipher} onValueChange={(v) => setActiveCipher(v as any)} className="w-full">
+            <Tabs defaultValue="caesar" value={activeCipher} onValueChange={(v) => handleCipherChange(v as any)} className="w-full">
               <TabsList className="grid w-full grid-cols-3 h-14 bg-white/50 backdrop-blur p-1 rounded-2xl shadow-sm border border-white/40">
                 <TabsTrigger value="caesar" className="rounded-xl text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-md transition-all">
                   {t.tab_caesar}

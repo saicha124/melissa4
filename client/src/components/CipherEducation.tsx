@@ -592,7 +592,7 @@ export function StepByStepAnimation({
       </div>
 
       <div className="overflow-x-auto">
-        <div className="min-w-max">
+        <div className="min-w-max" dir="ltr">
           <div className="grid gap-1" style={{ gridTemplateColumns: `auto repeat(${displayItems.length}, 1fr)` }}>
             <div className="text-[10px] font-bold text-slate-400 uppercase p-2">{l.original}</div>
             {displayItems.map((item, i) => (
