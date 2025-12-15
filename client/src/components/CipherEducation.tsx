@@ -499,23 +499,41 @@ export function StepByStepAnimation({
     const charPos = ALPHABET.indexOf(char);
     
     if (cipher === "caesar") {
-      const effectiveShift = isEncrypting ? shift : (26 - shift) % 26;
-      const newPos = (charPos + effectiveShift) % 26;
-      return {
-        result: ALPHABET[newPos],
-        keyChar: String(shift),
-        calculation: `(${charPos} ${isEncrypting ? '+' : '-'} ${shift}) mod 26 = ${newPos}`
-      };
+      if (isEncrypting) {
+        const newPos = (charPos + shift) % 26;
+        return {
+          result: ALPHABET[newPos],
+          keyChar: String(shift),
+          calculation: `(${charPos} + ${shift}) mod 26 = ${newPos}`
+        };
+      } else {
+        const rawResult = charPos - shift;
+        const newPos = ((rawResult % 26) + 26) % 26;
+        return {
+          result: ALPHABET[newPos],
+          keyChar: String(shift),
+          calculation: `(${charPos} - ${shift}) mod 26 = (${rawResult}) mod 26 = ${newPos}`
+        };
+      }
     } else if (cipher === "vigenere") {
       const keyChar = cleanKeyword[index % cleanKeyword.length];
       const keyShift = ALPHABET.indexOf(keyChar);
-      const effectiveShift = isEncrypting ? keyShift : (26 - keyShift) % 26;
-      const newPos = (charPos + effectiveShift) % 26;
-      return {
-        result: ALPHABET[newPos],
-        keyChar: `${keyChar} (${keyShift})`,
-        calculation: `(${charPos} ${isEncrypting ? '+' : '-'} ${keyShift}) mod 26 = ${newPos}`
-      };
+      if (isEncrypting) {
+        const newPos = (charPos + keyShift) % 26;
+        return {
+          result: ALPHABET[newPos],
+          keyChar: `${keyChar} (${keyShift})`,
+          calculation: `(${charPos} + ${keyShift}) mod 26 = ${newPos}`
+        };
+      } else {
+        const rawResult = charPos - keyShift;
+        const newPos = ((rawResult % 26) + 26) % 26;
+        return {
+          result: ALPHABET[newPos],
+          keyChar: `${keyChar} (${keyShift})`,
+          calculation: `(${charPos} - ${keyShift}) mod 26 = (${rawResult}) mod 26 = ${newPos}`
+        };
+      }
     } else {
       // RSA encryption (not decryption)
       if (!rsaKeys) return { result: "?", keyChar: "-", calculation: "-" };
